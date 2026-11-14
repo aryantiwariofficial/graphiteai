@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Graphite — Your EU AI Act compliance agent</title>
+<meta name="description" content="Graphite is an AI agent that checks your data, code and documents against the EU AI Act, then keeps a live dashboard and an audit-ready report up to date.">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&display=swap">
+<style>
+:root{--ink:#030710;--deep:#0D1322;--panel:#161F34;--line:#2F4B68;--slate:#40668D;--dim:#7F97B2;--blue:#006DDD;--sky:#7FC8FF;--sky2:#99D3FF;--mist:#CCE9FF;--ice:#E5F4FF;--frost:#F2FAFF;--violet:#7E65AE;--lilac:#D5C3F7}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth;-webkit-text-size-adjust:100%;text-size-adjust:100%}
+body{margin:0;overflow-wrap:break-word;background:var(--ink);color:var(--mist);font:400 1.0625rem/1.6 'Inter',sans-serif}
+a{color:var(--sky)}a:hover{color:var(--mist)}
+a:focus-visible,button:focus-visible,input:focus-visible{outline:3px solid var(--sky);outline-offset:3px}
+h1,h2,h3{font-family:'Space Grotesk',sans-serif;font-weight:600;color:var(--frost);margin:0;letter-spacing:-.03em}
+h1{font-size:4.25rem;line-height:1.03}
+h2{font-size:3rem;line-height:1.08}
+h3{font-size:1.375rem;line-height:1.25;letter-spacing:-.01em}
+p{margin:0}
+.wrap{max-width:1200px;margin:0 auto;padding:0 32px}
+.section{padding:112px 0}
+.alt{background:var(--deep);border-top:1px solid var(--panel);border-bottom:1px solid var(--panel)}
+.eyebrow{font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:.875rem;letter-spacing:.14em;text-transform:uppercase;color:var(--sky)}
+.intro{display:flex;flex-direction:column;gap:16px;max-width:46rem;margin-bottom:56px}
+.intro p.sub{font-size:1.1875rem}
+.btn{display:inline-flex;align-items:center;justify-content:center;min-height:52px;padding:0 26px;border-radius:12px;font-weight:600;text-decoration:none;border:0;font-family:inherit;font-size:1rem;cursor:pointer}
+.btn-primary{background:var(--blue);color:var(--frost)}.btn-primary:hover{background:#0A7BEE;color:var(--frost)}
+.btn-ghost{border:1px solid var(--line);color:var(--frost);background:transparent}.btn-ghost:hover{border-color:var(--sky);color:var(--frost)}
+.row{display:flex;flex-wrap:wrap;gap:24px}
+.card{flex:1 1 320px;background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:32px;display:flex;flex-direction:column;gap:14px}
+.chip{display:inline-flex;align-items:center;padding:4px 12px;border-radius:999px;font-size:.8125rem;font-weight:600;white-space:nowrap}
+.chip-pass{background:var(--panel);color:var(--sky)}
+.chip-review{background:var(--lilac);color:var(--ink)}
+.chip-gap{border:1px solid var(--dim);color:var(--mist)}
+.icon{width:32px;height:32px;fill:none;stroke:var(--sky);stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+
+/* header */
+header{border-bottom:1px solid var(--panel);position:sticky;top:0;background:rgba(3,7,16,.92);backdrop-filter:blur(8px);z-index:10}
+.nav{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:16px;padding-top:16px;padding-bottom:16px}
+.brand{display:flex;align-items:center;gap:12px;text-decoration:none}
+.brand span{font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:1.625rem;letter-spacing:-.03em;color:var(--frost)}
+.nav nav{display:flex;flex-wrap:wrap;align-items:center;gap:28px}
+.nav nav a{color:var(--mist);text-decoration:none;font-weight:500}
+.nav nav a:hover{color:var(--frost)}
+.nav nav .btn{min-height:44px;padding:0 20px;color:var(--frost)}
+
+/* hero */
+.hero{padding:96px 0}
+.hero .wrap{display:flex;flex-wrap:wrap;align-items:center;gap:64px}
+.hero-copy{flex:1 1 460px;min-width:0;display:flex;flex-direction:column;gap:28px}
+.pill{align-self:flex-start;padding:6px 14px;border:1px solid var(--line);border-radius:999px;font-size:.875rem;font-weight:600;color:var(--sky);letter-spacing:.04em}
+.hero-copy .lead{font-size:1.3125rem;line-height:1.55;max-width:34rem}
+.ctas{display:flex;flex-wrap:wrap;gap:14px}
+
+/* dashboard mock */
+.dash{flex:1 1 460px;min-width:0;background:var(--deep);border:1px solid var(--line);border-radius:20px;overflow:hidden}
+.dash-top{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:16px 22px;border-bottom:1px solid var(--panel)}
+.dash-top b{font-family:'Space Grotesk',sans-serif;font-weight:600;color:var(--frost)}
+.live{display:inline-flex;align-items:center;gap:8px;font-size:.8125rem;font-weight:600;color:var(--sky)}
+.live i{width:8px;height:8px;border-radius:50%;background:var(--sky);animation:pulse 2s ease-in-out infinite}
+@keyframes pulse{50%{opacity:.35}}
+@media (prefers-reduced-motion:reduce){.live i{animation:none}}
+.stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));border-bottom:1px solid var(--panel)}
+.stat{padding:16px 22px;border-right:1px solid var(--panel)}
+.stat:last-child{border-right:0}
+.stat strong{display:block;font-family:'Space Grotesk',sans-serif;font-size:1.5rem;color:var(--frost)}
+.stat span{font-size:.8125rem;color:var(--dim)}
+.tabs{display:flex;gap:6px;padding:14px 22px 0;overflow-x:auto;scrollbar-width:none}
+.tab{flex:0 0 auto}
+.tab{min-height:40px;padding:0 16px;border-radius:10px;border:1px solid transparent;background:transparent;color:var(--mist);font:600 .9375rem 'Inter',sans-serif;cursor:pointer}
+.tab[aria-selected="true"]{background:var(--panel);border-color:var(--line);color:var(--frost)}
+.findings{list-style:none;margin:0;padding:8px 22px 14px}
+.finding{display:flex;align-items:center;gap:14px;padding:12px 0;border-bottom:1px solid var(--panel)}
+.finding:last-child{border-bottom:0}
+.finding div{flex:1;min-width:0}
+.finding p:first-child{font-weight:600;color:var(--frost);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.finding p:last-child{font-size:.875rem;color:var(--dim)}
+.finding .chip{flex:0 0 auto}
+.finding[hidden]{display:none}
+.dash-foot{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px;padding:14px 22px;background:var(--panel)}
+.dash-foot span{font-size:.875rem}
+.dash-foot .btn{min-height:44px;padding:0 18px;font-size:.9375rem}
+.example{font-size:.8125rem;color:var(--dim);padding:0 22px 14px}
+
+/* timeline */
+.timeline{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:40px 24px}
+.tl{position:relative;display:flex;flex-direction:column;gap:8px;padding-top:28px;border-top:2px solid var(--line)}
+.tl::before{content:"";position:absolute;top:-8px;left:0;width:14px;height:14px;border-radius:50%;background:var(--ink);border:2px solid var(--line)}
+.tl.done{border-top-color:var(--blue)}
+.tl.done::before{background:var(--sky);border-color:var(--sky)}
+.tl time{font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:1.375rem;color:var(--sky)}
+.tl h3{font-size:1.125rem}
+.tl p{font-size:.9375rem;color:var(--mist)}
+.tl-status{align-self:flex-start;margin-top:4px;padding:3px 10px;border-radius:999px;font-size:.75rem;font-weight:600;border:1px solid var(--dim);color:var(--mist)}
+.tl.done .tl-status{border-color:transparent;background:var(--panel);color:var(--sky)}
+.tl.next .tl-status{border-color:transparent;background:var(--lilac);color:var(--ink)}
+
+/* checks */
+.check-col{flex:1 1 340px;background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:36px;display:flex;flex-direction:column;gap:18px}
+.check-col ul{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:12px}
+.check-col li{display:flex;gap:12px;align-items:baseline}
+.art{flex:0 0 auto;font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:.875rem;color:var(--sky);min-width:64px}
+
+/* outputs */
+.output{flex:1 1 440px;border:1px solid var(--line);border-radius:20px;padding:40px;display:flex;flex-direction:column;gap:18px;background:var(--ink)}
+.output ul{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:8px}
+
+/* steps */
+.step{flex:1 1 300px;display:flex;flex-direction:column;gap:14px;border-top:2px solid var(--blue);padding-top:28px}
+.step .n{font-family:'Space Grotesk',sans-serif;font-weight:600;color:var(--sky)}
+
+/* light section */
+.light{background:var(--ice);color:var(--ink)}
+.light h2,.light h3{color:var(--ink)}
+.light .eyebrow{color:var(--blue)}
+.cap{flex:1 1 260px;display:flex;flex-direction:column;gap:10px;padding:28px;border-radius:16px;background:var(--frost);border:1px solid #B2DEFF}
+.cap p{color:var(--line)}
+.disclaimer{margin-top:40px;font-size:.9375rem;color:var(--slate)}
+
+/* pricing */
+.plan{flex:1 1 300px;background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:36px;display:flex;flex-direction:column;gap:20px}
+.plan.featured{background:var(--deep);border:2px solid var(--blue)}
+.price{font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:2.5rem;color:var(--frost)}
+.price small{font-size:1rem;font-weight:500;color:var(--dim)}
+.plan ul{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:8px}
+.plan .btn{margin-top:auto}
+.badge{padding:4px 12px;border-radius:999px;background:var(--blue);color:var(--frost);font-size:.8125rem;font-weight:600}
+
+/* faq */
+.faq .wrap{display:flex;flex-wrap:wrap;gap:40px 64px}
+.faq h2{flex:1 1 280px;font-size:2.25rem}
+.faq-list{flex:2 1 520px;border-top:1px solid var(--line)}
+.faq-list div{padding:24px 0;border-bottom:1px solid var(--line)}
+.faq-list h3{font-size:1.25rem;margin-bottom:8px}
+
+/* cta */
+.cta{background:var(--blue)}
+.cta .wrap{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:40px;padding-top:96px;padding-bottom:96px}
+.cta-copy{flex:1 1 420px;display:flex;flex-direction:column;gap:14px}
+.cta-copy p{font-size:1.1875rem;color:var(--frost)}
+form{flex:1 1 380px;display:flex;flex-direction:column;gap:10px;margin:0}
+form label{font-weight:600;color:var(--frost)}
+.form-row{display:flex;flex-wrap:wrap;gap:12px}
+form input{flex:1 1 220px;min-height:52px;padding:0 16px;border:0;border-radius:12px;background:var(--frost);color:var(--ink);font:400 1rem 'Inter',sans-serif}
+form input:focus-visible{outline-color:var(--ink)}
+form .btn{background:var(--ink);color:var(--frost)}
+#form-msg{min-height:1.6em;font-weight:600;color:var(--frost)}
+
+/* footer */
+footer .wrap{display:flex;flex-wrap:wrap;justify-content:space-between;gap:32px;padding-top:56px;padding-bottom:56px}
+footer nav{display:flex;flex-wrap:wrap;gap:16px 32px}
+footer nav a{color:var(--mist);text-decoration:none}
+footer .small{font-size:.9375rem;color:var(--dim)}
+
+@media (max-width:1024px){
+  h1{font-size:3.5rem}
+  h2{font-size:2.5rem}
+  .timeline{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .hero .wrap{gap:48px}
+}
+@media (max-width:760px){
+  .nav nav a:not(.btn){display:none}
+}
+@media (max-width:640px){
+  h1{font-size:2.5rem}
+  h2{font-size:2rem}
+  .faq h2{font-size:2rem}
+  .wrap{padding:0 20px}
+  .section{padding:72px 0}
+  .hero{padding:56px 0}
+  .intro{margin-bottom:40px}
+  .hero-copy .lead{font-size:1.125rem}
+  .card,.check-col,.output,.plan{padding:24px}
+  .cta .wrap{padding-top:64px;padding-bottom:64px}
+  .dash-top,.stat,.findings,.dash-foot{padding-left:16px;padding-right:16px}
+  .tabs{padding-left:16px;padding-right:16px}
+  .example{padding-left:16px;padding-right:16px}
+  .stat{padding-top:14px;padding-bottom:14px}
+  .stat strong{font-size:1.25rem}
+  .finding p:first-child{white-space:normal}
+  /* timeline becomes a vertical list */
+  .timeline{grid-template-columns:1fr;gap:0;padding-left:22px;border-left:2px solid var(--line)}
+  .tl{border-top:0;padding:0 0 32px}
+  .tl:last-child{padding-bottom:0}
+  .tl::before{top:6px;left:-30px}
+  .tl time{font-size:1.25rem}
+}
+@media (max-width:400px){
+  h1{font-size:2.125rem}
+  .brand span{font-size:1.375rem}
+  .stats{grid-template-columns:1fr}
+  .stat{display:flex;align-items:baseline;justify-content:space-between;gap:12px;border-right:0;border-bottom:1px solid var(--panel)}
+  .stat:last-child{border-bottom:0}
+  .ctas .btn{flex:1 1 100%}
+}
+</style>
+</head>
+<body>
+
+<header>
+<div class="wrap nav">
+<a class="brand" href="#top" aria-label="Graphite home">
+<svg aria-hidden="true" viewBox="0 0 100 100" width="36" height="36"><g fill="none" stroke="#2F4B68" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"><path d="M50 18 L82 76 L18 76 Z"/><path d="M50 18 L50 56 M82 76 L50 56 M18 76 L50 56"/></g><circle cx="50" cy="18" r="12" fill="#7FC8FF"/><circle cx="82" cy="76" r="12" fill="#006DDD"/><circle cx="18" cy="76" r="12" fill="#006DDD"/><circle cx="50" cy="56" r="8" fill="#E5F4FF"/></svg>
+<span>graphite</span>
+</a>
+<nav aria-label="Main">
+<a href="#checks">What it checks</a>
+<a href="#outputs">Report &amp; dashboard</a>
+<a href="#how">How it works</a>
+<a href="#pricing">Pricing</a>
+<a class="btn btn-primary" href="#demo">Book a demo</a>
+</nav>
+</div>
+</header>
+
+<main>
+<!-- HERO -->
+<section class="hero" id="top">
+<div class="wrap">
+<div class="hero-copy">
+<p class="pill">AI agent for the EU AI Act</p>
+<h1>Your AI Act compliance agent, always on.</h1>
+<p class="lead">Graphite connects to your data, code and documents, checks them against the EU AI Act, and keeps a live dashboard and an audit-ready report up to date as your system changes.</p>
+<div class="ctas">
+<a class="btn btn-primary" href="#demo">Book a demo</a>
+<a class="btn btn-ghost" href="#how">See how it works</a>
+</div>
+</div>
+
+<div class="dash" aria-label="Example Graphite dashboard">
+<div class="dash-top"><b>Compliance dashboard · CV screening model</b><span class="live"><i></i>Live</span></div>
+<div class="stats">
+<div class="stat"><strong>High-risk</strong><span>Risk classification</span></div>
+<div class="stat"><strong>4</strong><span>Open findings</span></div>
+<div class="stat"><strong>9</strong><span>Articles covered</span></div>
+</div>
+<div class="tabs" role="tablist" aria-label="Finding source">
+<button class="tab" role="tab" aria-selected="true" data-filter="all">All</button>
+<button class="tab" role="tab" aria-selected="false" data-filter="data">Data</button>
+<button class="tab" role="tab" aria-selected="false" data-filter="code">Code</button>
+<button class="tab" role="tab" aria-selected="false" data-filter="docs">Documents</button>
+</div>
+<ul class="findings">
+<li class="finding" data-kind="data"><div><p>training_set_v3: data origin not recorded</p><p>Data · Art. 10(2)(b)</p></div><span class="chip chip-gap">Gap</span></li>
+<li class="finding" data-kind="data"><div><p>Bias examination for age and gender</p><p>Data · Art. 10(2)(f)</p></div><span class="chip chip-review">Review</span></li>
+<li class="finding" data-kind="code"><div><p>inference service: event logging enabled</p><p>Code · Art. 12</p></div><span class="chip chip-pass">Pass</span></li>
+<li class="finding" data-kind="code"><div><p>No human-override path in decision API</p><p>Code · Art. 14</p></div><span class="chip chip-gap">Gap</span></li>
+<li class="finding" data-kind="docs"><div><p>Instructions for use: accuracy metrics missing</p><p>Documents · Art. 13</p></div><span class="chip chip-review">Review</span></li>
+<li class="finding" data-kind="docs"><div><p>Technical documentation: risk section complete</p><p>Documents · Art. 11</p></div><span class="chip chip-pass">Pass</span></li>
+</ul>
+<p class="example">Example findings for illustration.</p>
+<div class="dash-foot"><span>Compliance report · updated on every scan</span><a class="btn btn-primary" href="#outputs">View report</a></div>
+</div>
+</div>
+</section>
+
+<!-- TIMELINE -->
+<section class="section alt" id="timeline" aria-labelledby="timeline-title">
+<div class="wrap">
+<div class="intro">
+<p class="eyebrow">The AI Act timeline</p>
+<h2 id="timeline-title">What already applies, and what comes next</h2>
+<p class="sub">The Act phases in over four years. The Digital Omnibus on AI, in force since 27 July 2026, moved the high-risk deadlines back, but the earlier obligations still apply.</p>
+</div>
+<ol class="timeline">
+<li class="tl done" data-date="2024-08-01"><time datetime="2024-08-01">1 Aug 2024</time><h3>Act enters into force</h3><p>Regulation (EU) 2024/1689 is published and the phase-in clock starts.</p><span class="tl-status">In effect</span></li>
+<li class="tl done" data-date="2025-02-02"><time datetime="2025-02-02">2 Feb 2025</time><h3>Prohibited practices banned</h3><p>Article 5 bans and AI literacy duties for staff apply.</p><span class="tl-status">In effect</span></li>
+<li class="tl done" data-date="2025-08-02"><time datetime="2025-08-02">2 Aug 2025</time><h3>General-purpose AI rules</h3><p>GPAI model obligations, governance and penalties apply.</p><span class="tl-status">In effect</span></li>
+<li class="tl done" data-date="2026-07-27"><time datetime="2026-07-27">27 Jul 2026</time><h3>Digital Omnibus in force</h3><p>Regulation (EU) 2026/1744 delays the high-risk deadlines.</p><span class="tl-status">In effect</span></li>
+<li class="tl done" data-date="2026-08-02"><time datetime="2026-08-02">2 Aug 2026</time><h3>Transparency duties</h3><p>Article 50 disclosure rules for chatbots, deepfakes and AI content apply.</p><span class="tl-status">In effect</span></li>
+<li class="tl next" data-date="2026-12-02"><time datetime="2026-12-02">2 Dec 2026</time><h3>New bans and watermarking</h3><p>Two new Article 5 bans apply, and the marking grace period for existing systems ends.</p><span class="tl-status">Next</span></li>
+<li class="tl" data-date="2027-12-02"><time datetime="2027-12-02">2 Dec 2027</time><h3>Stand-alone high-risk AI</h3><p>Annex III systems, such as hiring, credit and education, must comply.</p><span class="tl-status">Upcoming</span></li>
+<li class="tl" data-date="2028-08-02"><time datetime="2028-08-02">2 Aug 2028</time><h3>High-risk AI in products</h3><p>Annex I systems built into regulated products, such as medical devices, must comply.</p><span class="tl-status">Upcoming</span></li>
+</ol>
+</div>
+</section>
+
+<!-- CHECKS -->
+<section class="section" id="checks">
+<div class="wrap">
+<div class="intro">
+<p class="eyebrow">What it checks</p>
+<h2>Data, code and documents, read against the law</h2>
+<p class="sub">The agent maps each part of your system to the articles that apply to it, and cites the article behind every finding.</p>
+</div>
+<div class="row">
+<div class="check-col">
+<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><ellipse cx="12" cy="5" rx="8" ry="3"/><path d="M4 5v6c0 1.7 3.6 3 8 3s8-1.3 8-3V5M4 11v6c0 1.7 3.6 3 8 3s8-1.3 8-3v-6"/></svg>
+<h3>Data</h3>
+<ul>
+<li><span class="art">Art. 10</span><span>Origin, preparation steps, bias examination and gaps in training, validation and test sets</span></li>
+<li><span class="art">Art. 10(3)</span><span>Whether data is relevant and representative for the intended use</span></li>
+<li><span class="art">Art. 5</span><span>Flags prohibited sources, such as untargeted scraping of facial images</span></li>
+</ul>
+</div>
+<div class="check-col">
+<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 7l-5 5 5 5M16 7l5 5-5 5M14 4l-4 16"/></svg>
+<h3>Code</h3>
+<ul>
+<li><span class="art">Art. 12</span><span>Automatic logging and record-keeping across the system's lifetime</span></li>
+<li><span class="art">Art. 14</span><span>Human oversight: the ability to monitor, override and stop</span></li>
+<li><span class="art">Art. 15</span><span>Accuracy, robustness and cybersecurity measures</span></li>
+<li><span class="art">Art. 50</span><span>Disclosure when people interact with AI or see AI-generated content</span></li>
+</ul>
+</div>
+<div class="check-col">
+<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M9 13h6M9 17h6"/></svg>
+<h3>Documents</h3>
+<ul>
+<li><span class="art">Art. 9</span><span>Risk management system across the lifecycle</span></li>
+<li><span class="art">Art. 11</span><span>Technical documentation against Annex IV</span></li>
+<li><span class="art">Art. 13</span><span>Instructions for use for deployers</span></li>
+<li><span class="art">Art. 53</span><span>For GPAI models: training-data summary and copyright policy</span></li>
+</ul>
+</div>
+</div>
+</div>
+</section>
+
+<!-- OUTPUTS -->
+<section class="section alt" id="outputs">
+<div class="wrap">
+<div class="intro">
+<p class="eyebrow">What you get</p>
+<h2>A live dashboard and a report you can hand over</h2>
+</div>
+<div class="row">
+<div class="output">
+<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M7 15l3-3 3 2 4-5"/></svg>
+<h3>Live dashboard</h3>
+<p>Your compliance status as it is right now, refreshed whenever data, code or documents change.</p>
+<ul>
+<li>Findings grouped by article, source and severity</li>
+<li>Owners and due dates for every open gap</li>
+<li>Progress over time, by system and team</li>
+<li>Alerts when a change introduces a new issue</li>
+</ul>
+</div>
+<div class="output">
+<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M12 12v6M9 15l3 3 3-3"/></svg>
+<h3>Compliance report</h3>
+<p>An audit-ready report generated from the same evidence, for your legal team, customers or a conformity assessment.</p>
+<ul>
+<li>Risk classification and the reasoning behind it</li>
+<li>Article-by-article status with links to evidence</li>
+<li>Versioned to the exact release it describes</li>
+<li>Export as PDF, Word or JSON</li>
+</ul>
+</div>
+</div>
+</div>
+</section>
+
+<!-- HOW -->
+<section class="section" id="how">
+<div class="wrap">
+<div class="intro">
+<p class="eyebrow">How it works</p>
+<h2>Connect, scan, prove</h2>
+</div>
+<div class="row" style="gap:40px">
+<div class="step"><p class="n">01</p><h3>Connect your sources</h3><p>Give the agent read access to your repositories, data platforms and document drives: GitHub, GitLab, Bitbucket, Snowflake, BigQuery, Databricks, Amazon S3, Google Drive, SharePoint, Confluence and Notion.</p></div>
+<div class="step"><p class="n">02</p><h3>The agent scans</h3><p>It classifies your system's risk tier, works out which obligations apply, and checks each source against them, citing the article for every finding.</p></div>
+<div class="step"><p class="n">03</p><h3>Fix and prove</h3><p>Assign gaps, apply suggested fixes, and keep the dashboard and report current. The agent re-checks on every change.</p></div>
+</div>
+</div>
+</section>
+
+<!-- AGENT CAPABILITIES (light) -->
+<section class="section light">
+<div class="wrap">
+<div class="intro">
+<p class="eyebrow">Why an agent</p>
+<h2>Compliance that keeps up with your releases</h2>
+</div>
+<div class="row">
+<div class="cap"><h3>Reads like a reviewer</h3><p>Understands pipelines, code paths and prose documents, not just file names and keywords.</p></div>
+<div class="cap"><h3>Shows its sources</h3><p>Every finding links to the file, line or dataset it refers to and the article it relates to.</p></div>
+<div class="cap"><h3>Suggests, you approve</h3><p>Proposes fixes and documentation drafts. Nothing changes in your systems without your sign-off.</p></div>
+<div class="cap"><h3>Never goes stale</h3><p>Re-runs on every commit, data refresh or document edit, so the report matches what you ship.</p></div>
+</div>
+<p class="disclaimer">Graphite helps you find gaps and produce documentation. It does not make a system compliant on its own and is not legal advice.</p>
+</div>
+</section>
+
+<!-- PRICING -->
+<section class="section" id="pricing">
+<div class="wrap">
+<div class="intro">
+<p class="eyebrow">Pricing</p>
+<h2>Priced per AI system in scope</h2>
+</div>
+<div class="row">
+<div class="plan">
+<h3>Starter</h3>
+<p class="price">£50<small> / month</small></p>
+<ul><li>1 AI system</li><li>Data, code and document scans</li><li>Live dashboard</li><li>Compliance report export</li></ul>
+<a class="btn btn-ghost" href="#demo">Start with Starter</a>
+</div>
+<div class="plan featured">
+<div style="display:flex;justify-content:space-between;align-items:center;gap:12px"><h3>Team</h3><span class="badge">Most popular</span></div>
+<p class="price">£200<small> / month</small></p>
+<ul><li>Up to 10 AI systems</li><li>Everything in Starter</li><li>Scans on every change</li><li>Owners, due dates and alerts</li></ul>
+<a class="btn btn-primary" href="#demo">Book a demo</a>
+</div>
+<div class="plan">
+<h3>Enterprise</h3>
+<p class="price">Custom</p>
+<ul><li>Unlimited AI systems</li><li>Everything in Team</li><li>SSO, audit log, EU data residency</li><li>Dedicated support</li></ul>
+<a class="btn btn-ghost" href="#demo">Talk to sales</a>
+</div>
+</div>
+</div>
+</section>
+
+<!-- FAQ -->
+<section class="section faq" style="padding-top:0" aria-labelledby="faq-title">
+<div class="wrap">
+<h2 id="faq-title">Questions</h2>
+<div class="faq-list">
+<div><h3>Does Graphite make us compliant?</h3><p>No tool can do that alone. The agent finds gaps, drafts documentation and keeps the evidence current; your legal and risk teams still decide and sign off.</p></div>
+<div><h3>Will the agent change our code or data?</h3><p>Only with your approval. It proposes fixes and drafts, and you choose what to apply.</p></div>
+<div><h3>Is my system high-risk?</h3><p>Systems used in areas such as hiring, credit, education, essential services and critical infrastructure usually are. The agent proposes a classification with its reasoning for you and your advisers to confirm.</p></div>
+<div><h3>Where is our data processed?</h3><p>In the EU. By default, scans run in EU-hosted cloud regions and your data never leaves the EU; Enterprise customers can also run the agent inside their own cloud. Source content is read only during a scan and is never used to train models. Findings and evidence are kept for as long as your subscription is active, and you can delete them at any time.</p></div>
+</div>
+</div>
+</section>
+
+<!-- CTA -->
+<section class="cta" id="demo">
+<div class="wrap">
+<div class="cta-copy">
+<h2>See what the agent finds in your system</h2>
+<p>Book a walkthrough on your own data, code and documents.</p>
+</div>
+<form id="demo-form" name="demo-request" method="POST" data-netlify="true" netlify-honeypot="bot-field" novalidate>
+<input type="hidden" name="form-name" value="demo-request">
+<input type="hidden" name="subject" value="New demo request from %{siteName}">
+<p hidden><label>Don’t fill this out: <input name="bot-field" tabindex="-1" autocomplete="off"></label></p>
+<label for="email">Your email</label>
+<div class="form-row">
+<input id="email" name="email" type="email" required autocomplete="email" placeholder="you@example.com">
+<button class="btn" type="submit">Book a demo</button>
+</div>
+<p id="form-msg" role="status" aria-live="polite"></p>
+</form>
+</div>
+</section>
+</main>
+
+<footer>
+<div class="wrap">
+<div style="display:flex;flex-direction:column;gap:14px;flex:1 1 320px">
+<a class="brand" href="#top" aria-label="Graphite home">
+<svg aria-hidden="true" viewBox="0 0 100 100" width="32" height="32"><g fill="none" stroke="#2F4B68" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"><path d="M50 18 L82 76 L18 76 Z"/><path d="M50 18 L50 56 M82 76 L50 56 M18 76 L50 56"/></g><circle cx="50" cy="18" r="12" fill="#7FC8FF"/><circle cx="82" cy="76" r="12" fill="#006DDD"/><circle cx="18" cy="76" r="12" fill="#006DDD"/><circle cx="50" cy="56" r="8" fill="#E5F4FF"/></svg>
+<span style="font-size:1.375rem">graphite</span>
+</a>
+<p class="small">Your EU AI Act compliance agent. © 2026 Graphite</p>
+</div>
+<nav aria-label="Footer">
+<a href="#checks">Product</a>
+<a href="#pricing">Pricing</a>
+<a href="#top">Privacy</a>
+<a href="#top">Terms</a>
+<a href="#demo">Contact</a>
+</nav>
+</div>
+</footer>
+
+<script>
+// smooth in-page scrolling without changing the URL
+document.querySelectorAll('a[href^="#"]').forEach(function (a) {
+  a.addEventListener('click', function (e) {
+    var t = document.getElementById(a.getAttribute('href').slice(1));
+    if (t) { e.preventDefault(); t.scrollIntoView({ behavior: 'smooth' }); }
+  });
+});
+
+// timeline: mark past milestones and the next one from today's date
+(function () {
+  var items = document.querySelectorAll('.tl');
+  var today = new Date(); today.setHours(0, 0, 0, 0);
+  var nextSet = false;
+  items.forEach(function (li) {
+    var d = new Date(li.dataset.date + 'T00:00:00');
+    var s = li.querySelector('.tl-status');
+    li.classList.remove('done', 'next');
+    if (d <= today) { li.classList.add('done'); s.textContent = 'In effect'; }
+    else if (!nextSet) { li.classList.add('next'); s.textContent = 'Next'; nextSet = true; }
+    else { s.textContent = 'Upcoming'; }
+  });
+})();
+
+// dashboard tabs
+var tabs = document.querySelectorAll('.tab');
+var rows = document.querySelectorAll('.finding');
+tabs.forEach(function (tab) {
+  tab.addEventListener('click', function () {
+    tabs.forEach(function (t) { t.setAttribute('aria-selected', t === tab ? 'true' : 'false'); });
+    var f = tab.dataset.filter;
+    rows.forEach(function (r) { r.hidden = !(f === 'all' || r.dataset.kind === f); });
+  });
+});
+
+// demo form (submitted to Netlify Forms)
+var form = document.getElementById('demo-form');
+var msg = document.getElementById('form-msg');
+var email = document.getElementById('email');
+var submitBtn = form.querySelector('button[type="submit"]');
+form.addEventListener('submit', function (e) {
+  e.preventDefault();
+  var v = email.value.trim();
+  if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(v)) { msg.textContent = 'Please enter a valid email address.'; email.focus(); return; }
+  email.value = v;
+  submitBtn.disabled = true;
+  msg.textContent = 'Sending…';
+  fetch('/', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: new URLSearchParams(new FormData(form)).toString()
+  }).then(function (res) {
+    if (!res.ok) throw new Error('Request failed');
+    msg.textContent = 'Thanks! We’ve got your request and will be in touch shortly.';
+    form.reset();
+  }).catch(function () {
+    msg.textContent = 'Something went wrong. Please try again in a moment.';
+  }).finally(function () {
+    submitBtn.disabled = false;
+  });
+});
+</script>
+</body>
+</html>
